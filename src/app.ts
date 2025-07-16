@@ -1,15 +1,17 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-// import userRoutes from './routes/user.routes';
+import cors from "cors";
+import userRoutes from './routes/user.routes';
 // import { supabaseErrorHandler } from './middlewares/supabaseErrorHandler';
 
 const app = express();
 
 // Middleware
 app.use(bodyParser.json());
+app.use(cors({origin: [process.env.CLIENT_CORS ?? ""]}));
 
 // Routes
-// app.use('/api/users', userRoutes);
+app.use('/users', userRoutes);
 
 // Error handling
 // app.use(supabaseErrorHandler);
