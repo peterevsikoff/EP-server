@@ -16,19 +16,19 @@ export const authenticate = async (
 ) => {
   const token = req.headers.authorization?.split(' ')[1];
   
-  if (!token) {
-    return res.status(401).json({ error: 'Authorization token required' });
-  }
+//   if (!token) {
+//     return res.status(401).json({ error: 'Authorization token required' });
+//   }
 
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+//   try {
+//     const { data: { user }, error } = await supabase.auth.getUser(token);
     
-    if (error) throw error;
-    if (!user) return res.status(401).json({ error: 'Invalid token' });
+//     if (error) throw error;
+//     if (!user) return res.status(401).json({ error: 'Invalid token' });
     
-    req.user = user;
-    next();
-  } catch (error) {
-    res.status(401).json({ error: /*error.message*/"" });
-  }
+//     req.user = user;
+//     next();
+//   } catch (error) {
+//     res.status(401).json({ error: /*error.message*/"" });
+//   }
 };
