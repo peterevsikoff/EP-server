@@ -1,9 +1,37 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
 import { CreateUserDto, UpdateUserDto } from '../models/user.model';
+import { responseFactory } from '../api/response.factory';
 
 export class UserController {
-  static async getAllUsers(req: Request, res: Response) {
+    static async signUp(req: Request, res: Response) {
+        const api = responseFactory(res);
+        try {
+            const { email, password } = req.body;
+            
+            if (!email || !password) return api.badRequest("Email and password are required");
+            
+            const user = await UserService.getUserByEmail(email);
+            console.log(user);
+            if(user){
+                return api.conflict("User with this email already exists");
+            }
+            // 3. Создание пользователя
+            const newUser = await UserService.createUser({ email, password });
+            
+            // 4. Успешный ответ
+            return api.created(newUser);
+
+        } catch(error) {
+            return api.serverError(error as Error);
+        }
+    }
+
+
+
+
+
+    static async getAllUsers(req: Request, res: Response) {
     
     try {
       const users = await UserService.getUsers();

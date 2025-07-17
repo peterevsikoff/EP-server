@@ -4,6 +4,7 @@ import { authenticate } from '../middlewares/auth';
 
 const router = express.Router();
 
+router.post("/signUp", UserController.signUp);
 
 
 router.get('/getAllUsers', UserController.getAllUsers);
