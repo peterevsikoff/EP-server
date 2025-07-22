@@ -1,6 +1,7 @@
 import { supabase } from '../config/supabase';
 import { CreateUserDto, UpdateUserDto } from '../models/user.model';
 import { Database } from '../types/database.types';
+import bcrypt from "bcrypt";
 
 type User = Database['public']['Tables']['Users']['Row'];
 
@@ -35,15 +36,44 @@ export class UserService {
 
     static async createUser(userData: CreateUserDto): Promise<User> {
         try {
-            const { data, error } = await supabase.from("Users").insert({email: userData.email}).select("*").single();
+            const { email, password } = userData;
+            const salt = await bcrypt.genSalt(10);
+            const hash = await bcrypt.hash(password, salt);
+
+            const { data, error } = await supabase.from("Users").insert({email: email, password: hash}).select("*").single();
             console.log(data, error);
+
             if (error || !data) {
                 throw new DatabaseError("Failed to create user", {
                     originalError: error,
                     context: { userData }
                 });
             }
-             return data;
+            return data;
+
+            // bcrypt.genSalt(10, (err, salt) => {
+            //     if (err) {
+            //         throw new DatabaseError("Failed to create user", {
+            //             originalError: err,
+            //             context: { userData }
+            //         });
+            //     }
+                
+            //     bcrypt.hash(password, salt, async (err, hash) => {
+            //         if (err) {
+            //             throw new DatabaseError("Failed to create user", {
+            //                 originalError: err,
+            //                 context: { userData }
+            //             });
+            //         }
+
+                    
+            //     });
+
+            // });    
+
+
+            
         } catch(error){
             if (error instanceof DatabaseError) {
                 throw error;
