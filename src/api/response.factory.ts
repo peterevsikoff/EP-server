@@ -15,18 +15,18 @@ const responseFactory = (res: Response): ApiResponse => {
     created: (data) => res.status(StatusCodes.CREATED).json(data),
     badRequest: (message, details) => res.status(StatusCodes.BAD_REQUEST).json({
       code: StatusCodes.BAD_REQUEST,
-      error: 'Bad Request',
+      error: "Bad Request",
       message,
       details
     }),
     conflict: (message) => res.status(StatusCodes.CONFLICT).json({
       code: StatusCodes.CONFLICT,
-      error: 'Conflict',
+      error: "Conflict",
       message
     }),
     serverError: (error) => res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       code: StatusCodes.INTERNAL_SERVER_ERROR,
-      error: 'Internal Server Error',
+      error: "Internal Server Error",
       message: error.message
     })
   };

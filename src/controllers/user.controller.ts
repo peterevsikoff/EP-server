@@ -1,25 +1,28 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
-import { CreateUserDto, UpdateUserDto } from '../models/user.model';
 import { responseFactory } from '../api/response.factory';
+import { languageRu as language } from '../locales/ru-RU';
+import bcrypt from "bcrypt";
 
 export class UserController {
     static async signUp(req: Request, res: Response) {
+
         const api = responseFactory(res);
+
         try {
             const { email, password } = req.body;
-            
-            if (!email || !password) return api.badRequest("Email and password are required");
+
+            if(!email) return api.badRequest(language.email_requared);
+            if (!password) return api.badRequest(language.password_requared);
             
             const user = await UserService.getUserByEmail(email);
-            console.log(user);
-            if(user){
-                return api.conflict("User with this email already exists");
-            }
-            // 3. Создание пользователя
-            const newUser = await UserService.createUser({ email, password });
             
-            // 4. Успешный ответ
+            if(user && user.password){
+                const result = await bcrypt.compare(user.password, password);
+                if(result) return api.ok(user);
+            }
+            
+            const newUser = await UserService.createUser({ email, password });
             return api.created(newUser);
 
         } catch(error) {
@@ -27,19 +30,38 @@ export class UserController {
         }
     }
 
+    static async signIn(req: Request, res: Response){
+        const api = responseFactory(res);
 
+        try {
+            const { email, password } = req.body;
 
+            if(!email) return api.badRequest(language.email_requared);
+            if (!password) return api.badRequest(language.password_requared);
+            
+            const user = await UserService.getUserByEmail(email);
+            
+            if(user && user.password){
+                const result = await bcrypt.compare(user.password, password);
+                if(result) return api.ok(user);
+            } else 
+                return api.badRequest(language.wrong_email_password)
 
+        } catch(error) {
+            return api.serverError(error as Error);
+        }
+    }
 
     static async getAllUsers(req: Request, res: Response) {
-    
-    try {
-      const users = await UserService.getUsers();
-      res.json(users);
-    } catch (error) {
-      res.status(500).json({ error: /*error.message*/ "" });
+        const api = responseFactory(res);
+
+        try {
+            const users = await UserService.getUsers();
+            return api.ok(users);
+        } catch (error) {
+            return api.serverError(error as Error);
+        }
     }
-  }
 
 //   static async getUser(req: Request, res: Response) {
 //     try {
@@ -52,30 +74,6 @@ export class UserController {
 //       res.json(user);
 //     } catch (error) {
 //       res.status(500).json({ error: /*error.message*/ "" });
-//     }
-//   }
-
-//   static async createUser(req: Request, res: Response) {
-//     try {
-//       const userData: CreateUserDto = req.body;
-      
-//       // Валидация может быть здесь или в middleware
-//       if (!userData.email || !userData.password) {
-//         return res.status(400).json({ error: 'Email and password are required' });
-//       }
-
-//       const newUser = await UserService.createUser(userData);
-      
-//       // Не возвращаем пароль в ответе
-//     //   const { password, ...userWithoutPassword } = newUser;
-      
-//       res.status(201).json(/*userWithoutPassword*/newUser);
-//     } catch (error) {
-//       console.error('Error creating user:', error);
-//       res.status(500).json({ 
-//         error: 'Failed to create user',
-//         details: /*error.message*/ ""
-//       });
 //     }
 //   }
 }
