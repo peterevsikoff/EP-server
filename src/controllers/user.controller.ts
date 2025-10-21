@@ -19,7 +19,10 @@ export class UserController {
             
             if(user && user.password){
                 const result = await bcrypt.compare(user.password, password);
-                if(result) return api.ok(user);
+                if(result)
+                    return api.ok(user);
+                else
+                    return api.badRequest(language.user_exist);
             }
             
             const newUser = await UserService.createUser({ email, password });
