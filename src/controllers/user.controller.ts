@@ -18,7 +18,7 @@ export class UserController {
             const user = await UserService.getUserByEmail(email);
             
             if(user && user.password){
-                const result = await bcrypt.compare(user.password, password);
+                const result = await bcrypt.compare(password, user.password);
                 if(result)
                     return api.ok(user);
                 else
