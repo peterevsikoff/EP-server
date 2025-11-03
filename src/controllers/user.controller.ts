@@ -24,6 +24,8 @@ export class UserController {
                 else
                     return api.badRequest(language.user_exist);
             }
+
+
             
             const newUser = await UserService.createUser({ email, password });
             return api.created(newUser);

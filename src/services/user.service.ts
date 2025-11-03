@@ -2,6 +2,8 @@ import { supabase } from '../config/supabase';
 import { CreateUserDto, UpdateUserDto } from '../models/user.model';
 import { Database } from '../types/database.types';
 import bcrypt from "bcrypt";
+import * as crypto from "crypto";
+import { EmailService } from './email.service';
 
 type User = Database['public']['Tables']['Users']['Row'];
 
@@ -40,8 +42,12 @@ export class UserService {
             const salt = await bcrypt.genSalt(10);
             const hash = await bcrypt.hash(password, salt);
 
-            const { data, error } = await supabase.from("Users").insert({email: email, password: hash}).select("*").single();
-            console.log(data, error);
+            const token = crypto.randomBytes(32).toString("hex");
+            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+            const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+            const { data, error } = await supabase.from("Users").insert({email: email, password: hash, verificationToken: hashedToken}).select("*").single();
+            
 
             if (error || !data) {
                 throw new DatabaseError("Failed to create user", {
@@ -49,31 +55,9 @@ export class UserService {
                     context: { userData }
                 });
             }
+            EmailService.sendVerificationEmail(email, token);
             return data;
 
-            // bcrypt.genSalt(10, (err, salt) => {
-            //     if (err) {
-            //         throw new DatabaseError("Failed to create user", {
-            //             originalError: err,
-            //             context: { userData }
-            //         });
-            //     }
-                
-            //     bcrypt.hash(password, salt, async (err, hash) => {
-            //         if (err) {
-            //             throw new DatabaseError("Failed to create user", {
-            //                 originalError: err,
-            //                 context: { userData }
-            //             });
-            //         }
-
-                    
-            //     });
-
-            // });    
-
-
-            
         } catch(error){
             if (error instanceof DatabaseError) {
                 throw error;
