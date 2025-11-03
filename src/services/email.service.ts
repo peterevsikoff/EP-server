@@ -1,7 +1,8 @@
 import { Resend } from "resend";
 
 // Инициализация (лучше вынести в отдельный конфиг)
-const resend = new Resend(process.env.RESEND_API_KEY);
+// const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export class EmailService {
   static async sendVerificationEmail(email: string, token: string) {
@@ -10,7 +11,7 @@ export class EmailService {
     // console.log(verificationUrl, email);
     
     try {
-      await resend.emails.send({
+      await resend?.emails.send({
         from: 'Easy Psy <onboarding@resend.dev>',
         to: email,
         subject: 'Подтвердите ваш email',
