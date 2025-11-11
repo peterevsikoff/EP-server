@@ -3,7 +3,7 @@ import { CreateUserDto, UpdateUserDto } from '../models/user.model';
 import { Database } from '../types/database.types';
 import bcrypt from "bcrypt";
 import * as crypto from "crypto";
-import { checkWeb3FormsConnection, EmailService, sendVerificationEmail } from './email.service';
+import { sendVerificationEmail } from './email.service';
 
 type User = Database['public']['Tables']['Users']['Row'];
 
