@@ -3,7 +3,7 @@ import { CreateUserDto, UpdateUserDto } from '../models/user.model';
 import { Database } from '../types/database.types';
 import bcrypt from "bcrypt";
 import * as crypto from "crypto";
-import { EmailService } from './email.service';
+import { checkWeb3FormsConnection, EmailService, sendVerificationEmail } from './email.service';
 
 type User = Database['public']['Tables']['Users']['Row'];
 
@@ -55,7 +55,17 @@ export class UserService {
                     context: { userData }
                 });
             }
-            EmailService.sendVerificationEmail(email, token);
+            //EmailService.sendVerificationEmail(email, token);
+            // const isEmailServiceReady = await checkWeb3FormsConnection();
+            // if (!isEmailServiceReady) {
+            //     console.log('Email service temporarily unavailable');
+            // // return res.status(503).json({
+            // //     success: false,
+            // //     error: 'Email service temporarily unavailable'
+            // // });
+            // }
+            await sendVerificationEmail(email, token);
+
             return data;
 
         } catch(error){

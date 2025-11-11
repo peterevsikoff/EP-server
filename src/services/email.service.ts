@@ -1,78 +1,83 @@
-// import { Resend } from "resend";
-
-// Инициализация (лучше вынести в отдельный конфиг)
-// const resend = new Resend(process.env.RESEND_API_KEY);
-// const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-
 import nodemailer from 'nodemailer';
 
 // Создаем транспорт с оптимизацией для Vercel
 const transporter = nodemailer.createTransport({
-  host: 'smtp.elasticemail.com',
-  port: 2525,
-  secure: false, // port 2525 uses TLS
+  service: 'gmail',
   auth: {
-    user: process.env.ELASTIC_EMAIL_USER,
-    pass: process.env.ELASTIC_EMAIL_API_KEY
-  },
-  // Оптимизации для serverless
-  connectionTimeout: 10000, // 10 seconds
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
-  // Логирование
-  logger: true,
-  debug: false
+    user: process.env.GMAIL_EMAIL,
+    pass: process.env.GMAIL_APP_PASSWORD
+  }
 });
 
-export class EmailService {
-  static async sendVerificationEmail(email: string, token: string) {
-    const verificationUrl = `${process.env.CLIENT_CORS}/verify-email?token=${token}`;
-
+export async function sendVerificationEmail(userEmail: string, verificationToken: string) {
+    const verificationLink = `${process.env.CLIENT_CORS}/api/verify-email?token=${verificationToken}`;
+  
     const mailOptions = {
-    from: {
-      name: 'Easy Psy',
-      address: process.env.ELASTIC_EMAIL_USER || ""
-    },
-    to: email,
-    subject: '✅ Подтвердите ваш email - Easy Psy',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px;">
-        <h2>Подтвердите ваш email</h2>
-        <p>Для завершения регистрации нажмите на кнопку:</p>
-        <a href="${verificationUrl}" style="background: #0070f3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-          Подтвердить Email
-        </a>
-        <p>Или скопируйте ссылку: ${verificationUrl}</p>
-      </div>
-    `,
-  };
+        from: `Easy Psy <${process.env.GMAIL_EMAIL}>`,
+        to: userEmail,
+        subject: 'Подтверждение email для Easy Psy',
+        html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Подтверждение email</title>
+            <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .container { background: #f9f9f9; border-radius: 10px; padding: 30px; }
+            .button { background: #0070f3; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-size: 16px; font-weight: bold; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+            <h2 style="color: #000; margin-bottom: 20px;">Добро пожаловать в Easy Psy!</h2>
+            
+            <p>Для завершения регистрации и активации вашего аккаунта необходимо подтвердить ваш email адрес.</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${verificationLink}" class="button">
+                Подтвердить мой email
+                </a>
+            </div>
+            
+            <p>Если кнопка не работает, скопируйте и вставьте следующую ссылку в адресную строку браузера:</p>
+            <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #ddd; word-break: break-all;">
+                ${verificationLink}
+            </p>
+            
+            <div class="footer">
+                <p>Это письмо отправлено автоматически. Пожалуйста, не отвечайте на него.</p>
+                <p>Если вы не регистрировались в Easy Psy, просто проигнорируйте это сообщение.</p>
+                <p>© ${new Date().getFullYear()} Easy Psy. Все права защищены.</p>
+            </div>
+            </div>
+        </body>
+        </html>
+        `,
+        text: `
+        Подтверждение email для Easy Psy
 
-  try {
-    const result = await transporter.sendMail(mailOptions);
-    console.log(`Verification email sent to: ${email}`);
-    return result;
-  } catch (error) {
-    console.error('Email send error:', error);
-    throw error;
-  }
+        Добро пожаловать! Для завершения регистрации перейдите по ссылке:
 
-    // console.log(verificationUrl, email);
-    
-    // try {
-    //   await resend?.emails.send({
-    //     from: 'Easy Psy <onboarding@resend.dev>',
-    //     to: email,
-    //     subject: 'Подтвердите ваш email',
-    //     html: `
-    //       <h2>Подтверждение email</h2>
-    //       <p>Для завершения регистрации перейдите по ссылке:</p>
-    //       <a href="${verificationUrl}">${verificationUrl}</a>
-    //       <p>Ссылка действительна в течение 24 часов.</p>
-    //     `
-    //   });
-    // } catch (error) {
-    //   console.error('Error sending verification email:', error);
-    //   throw new Error('Failed to send verification email');
-    // }
-  }
+        ${verificationLink}
+
+        Если ссылка не работает, скопируйте и вставьте ее в браузер.
+
+        Это письмо отправлено автоматически. Не отвечайте на него.
+
+        © ${new Date().getFullYear()} Easy Psy
+            `.trim()
+    };
+
+    try {
+        const result = await transporter.sendMail(mailOptions);
+        // console.log('✅ Gmail email sent with improved content');
+        // console.log(result);
+        return result;
+    } catch (error) {
+        // console.error('❌ Gmail error:', error);
+        throw error;
+    }
 }
