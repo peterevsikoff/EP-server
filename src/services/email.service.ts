@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendVerificationEmail(userEmail: string, verificationToken: string) {
-    const verificationLink = `${process.env.CLIENT_CORS}/api/verify-email?token=${verificationToken}`;
+    const verificationLink = `${process.env.CLIENT_CORS}/signUp/verifyEmail?token=${verificationToken}`;
   
     const mailOptions = {
         from: `Easy Psy <${process.env.GMAIL_EMAIL}>`,
