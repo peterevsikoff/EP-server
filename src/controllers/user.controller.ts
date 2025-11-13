@@ -3,6 +3,9 @@ import { UserService } from '../services/user.service';
 import { responseFactory } from '../api/response.factory';
 import { languageRu as language } from '../locales/ru-RU';
 import bcrypt from "bcrypt";
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import { VerificationTokenPayload } from '@/models/jwt.model';
+import * as crypto from "crypto";
 
 export class UserController {
     static async signUp(req: Request, res: Response) {
@@ -16,6 +19,8 @@ export class UserController {
             if (!password) return api.badRequest(language.password_requared);
             
             const user = await UserService.getUserByEmail(email);
+            if(user && !user.isVerified)
+                return api.badRequest(language.user_not_verified);
             
             if(user && user.password){
                 const result = await bcrypt.compare(password, user.password);
@@ -67,6 +72,55 @@ export class UserController {
             return api.serverError(error as Error);
         }
     }
+
+    static async emailVerified(req: Request, res: Response) {
+
+        const api = responseFactory(res);
+
+        try {
+            const { token } = req.body;
+
+            if(!token) return api.badRequest(language.email_requared);
+            
+            const decoded = jwt.verify(token, process.env.JWT_EMAIL_SECRET || "email_verification");
+  
+            if (typeof decoded === "string") {
+                throw new Error('Invalid token format');
+            }
+            // Проверяем назначение токена
+            if (decoded.purpose !== 'email_verification') {
+                throw new Error('Invalid token purpose');
+            }
+
+            const payload = decoded as JwtPayload & VerificationTokenPayload;
+    
+            // Проверяем обязательные поля
+            if (!payload.token || !payload.email || !payload.purpose) {
+                throw new Error('Invalid token payload');
+            }
+
+            console.log(payload);
+
+            const hashedToken = crypto.createHash('sha256').update(payload.token).digest('hex');
+
+            // 5. Ищем пользователя...
+            const user = await UserService.getUserByEmailToken(payload.email, hashedToken);
+
+            if (!user) {
+                return res.status(400).json({ error: 'Invalid token' });
+            }
+
+            user.isVerified = true;
+            user.verificationToken = null;
+            // 6. Активируем пользователя
+            UserService.updateUser(user);
+            
+            return api.ok(user);
+        } catch(error) {
+            return api.serverError(error as Error);
+        }
+    }
+
 
 //   static async getUser(req: Request, res: Response) {
 //     try {

@@ -1,12 +1,11 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
-// Создаем транспорт с оптимизацией для Vercel
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_EMAIL,
-    pass: process.env.GMAIL_APP_PASSWORD
-  }
+    service: "gmail",
+    auth: {
+        user: process.env.GMAIL_EMAIL,
+        pass: process.env.GMAIL_APP_PASSWORD
+    }
 });
 
 export async function sendVerificationEmail(userEmail: string, verificationToken: string) {
@@ -73,11 +72,8 @@ export async function sendVerificationEmail(userEmail: string, verificationToken
 
     try {
         const result = await transporter.sendMail(mailOptions);
-        // console.log('✅ Gmail email sent with improved content');
-        // console.log(result);
         return result;
     } catch (error) {
-        // console.error('❌ Gmail error:', error);
         throw error;
     }
 }
