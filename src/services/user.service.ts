@@ -4,7 +4,7 @@ import { Database } from '../types/database.types';
 import bcrypt from "bcrypt";
 import * as crypto from "crypto";
 import { sendVerificationEmail } from './email.service';
-import { generateVerificationToken } from '@/utils/jwt.utils';
+import { generateVerificationToken } from '../utils/jwt.utils';
 
 type User = Database['public']['Tables']['Users']['Row'];
 
