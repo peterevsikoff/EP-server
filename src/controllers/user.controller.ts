@@ -102,7 +102,8 @@ export class UserController {
             const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
             // 5. Ищем пользователя...
-            const user = await UserService.getUserByEmailToken(payload.email, hashedToken);
+            // const user = await UserService.getUserByEmailToken(payload.email, hashedToken);
+            const user = await UserService.getUserByEmail(payload.email);
 
             if (!user) {
                 return res.status(400).json({ error: 'Invalid token' });
