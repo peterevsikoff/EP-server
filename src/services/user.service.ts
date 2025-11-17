@@ -85,16 +85,16 @@ export class UserService {
 
     static async updateUser(userData: User): Promise<User> {
         try {
-            const { data, error } = await supabase.from("Users").update({isVerified: userData.isVerified, verificationToken: userData.verificationToken}).eq("id", userData.id).select("*").single();
+            const { data, error } = await supabase.from("Users").update({isVerified: userData.isVerified, verificationToken: userData.verificationToken}).eq("id", userData.id).select("*");
             
             if (error || !data) {
-                throw new DatabaseError("Failed to create user", {
+                throw new DatabaseError("Failed to update user", {
                     originalError: error,
                     context: { userData }
                 });
             }
             
-            return data;
+            return data[0];
 
         } catch(error){
             if (error instanceof DatabaseError) {

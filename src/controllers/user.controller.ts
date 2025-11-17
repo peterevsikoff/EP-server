@@ -95,13 +95,11 @@ export class UserController {
             const payload = decoded as JwtPayload & VerificationTokenPayload;
     
             // Проверяем обязательные поля
-            if (!payload.token || !payload.email || !payload.purpose) {
+            if (!token || !payload.email || !payload.purpose) {
                 throw new Error('Invalid token payload');
             }
 
-            console.log(payload);
-
-            const hashedToken = crypto.createHash('sha256').update(payload.token).digest('hex');
+            const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
             // 5. Ищем пользователя...
             const user = await UserService.getUserByEmailToken(payload.email, hashedToken);
